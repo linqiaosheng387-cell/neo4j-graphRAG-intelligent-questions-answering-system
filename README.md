@@ -6,6 +6,7 @@
 
 ## 目录
 
+- [系统截图](#系统截图)
 - [系统架构](#系统架构)
 - [技术栈](#技术栈)
 - [项目结构](#项目结构)
@@ -14,6 +15,39 @@
 - [依赖说明](#依赖说明)
 - [API 文档](#api-文档)
 - [配置说明](#配置说明)
+
+---
+
+## 系统截图
+
+### 问答聊天界面
+
+<table>
+  <tr>
+    <td><img src="docs/images/问答前端/chat-ui-1.png" alt="问答界面 1" width="100%"/></td>
+    <td><img src="docs/images/问答前端/chat-ui-2.jpg" alt="问答界面 2" width="100%"/></td>
+  </tr>
+</table>
+
+### 后台管理系统
+
+<table>
+  <tr>
+    <td><img src="docs/images/后台前端/admin-1.jpg" alt="后台管理 Dashboard" width="100%"/></td>
+    <td><img src="docs/images/后台前端/admin-2.jpg" alt="后台管理 问答记录" width="100%"/></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/后台前端/admin-3.jpg" alt="后台管理 知识图谱" width="100%"/></td>
+    <td><img src="docs/images/后台前端/admin-4.jpg" alt="后台管理 访问日志" width="100%"/></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/images/后台前端/admin-5.jpg" alt="后台管理 数据管理" width="50%"/></td>
+  </tr>
+</table>
+
+### Neo4j 知识图谱数据库
+
+<img src="docs/images/neo4j数据库/neo4j.jpg" alt="Neo4j 图数据库可视化" width="80%"/>
 
 ---
 
