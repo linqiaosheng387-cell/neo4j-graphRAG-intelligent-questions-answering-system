@@ -1,0 +1,228 @@
+// 主题系统 - 明/暗双主题
+:root {
+  // 亮色主题
+  --bg-1: #ffffff;
+  --bg-2: #f8f9fa;
+  --bg-3: #f0f2f5;
+  --bg-4: #e8eaed;
+
+  --text-1: #1a1a1a;
+  --text-2: #595959;
+  --text-3: #8c8c8c;
+  --text-4: #bfbfbf;
+
+  --border-color: #d9d9d9;
+  --border-light: #f0f0f0;
+
+  // 功能色
+  --primary: #667eea;
+  --primary-hover: #764ba2;
+  --primary-active: #5568d3;
+  --primary-light: #f0f4ff;
+
+  --success: #52c41a;
+  --success-light: #f6ffed;
+
+  --warning: #faad14;
+  --warning-light: #fffbe6;
+
+  --error: #f5222d;
+  --error-light: #fff1f0;
+
+  --info: #1890ff;
+  --info-light: #e6f7ff;
+
+  // 阴影
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02),
+    0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  // 过渡
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// 暗色主题
+[data-theme='dark'] {
+  --bg-1: #1a1a1a;
+  --bg-2: #262626;
+  --bg-3: #333333;
+  --bg-4: #404040;
+
+  --text-1: #f5f5f5;
+  --text-2: #d9d9d9;
+  --text-3: #a6a6a6;
+  --text-4: #737373;
+
+  --border-color: #434343;
+  --border-light: #303030;
+
+  --primary-light: #111d2c;
+}
+
+// 响应式断点
+$breakpoints: (
+  'xs': 0,
+  'sm': 640px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px,
+  '2xl': 1536px
+);
+
+@mixin respond-to($breakpoint) {
+  @media (min-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+// 文本样式
+.text-h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-1);
+}
+
+.text-h2 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.33;
+  color: var(--text-1);
+}
+
+.text-h3 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-1);
+}
+
+.text-h4 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-1);
+}
+
+.text-body {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.57;
+  color: var(--text-2);
+}
+
+.text-caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.67;
+  color: var(--text-3);
+}
+
+.text-secondary {
+  color: var(--text-3);
+}
+
+.text-tertiary {
+  color: var(--text-4);
+}
+
+// 数值强调
+.number-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--text-1);
+
+  .unit {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-3);
+    margin-left: 4px;
+  }
+
+  &.positive {
+    color: var(--success);
+  }
+
+  &.negative {
+    color: var(--error);
+  }
+}
+
+// 卡片样式
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  &.elevated {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+// 留白系统
+.p-2 {
+  padding: 8px;
+}
+.p-3 {
+  padding: 12px;
+}
+.p-4 {
+  padding: 16px;
+}
+.p-6 {
+  padding: 24px;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 12px;
+}
+.gap-4 {
+  gap: 16px;
+}
+
+// 禁用态
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// 骨架屏
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-2) 25%,
+    var(--bg-3) 50%,
+    var(--bg-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// 平滑过渡
+* {
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}

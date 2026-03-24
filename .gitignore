@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node.js
+node_modules/
+dist/
+.vite/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 数据文件（体积过大）
+*.parquet
+lancedb/
+context.json
+stats.json
+
+# 上传的文件
+vue_backend/uploads/
+
+# 日志
+*.log

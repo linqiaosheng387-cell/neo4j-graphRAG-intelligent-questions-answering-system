@@ -1,0 +1,110 @@
+@import './theme.scss';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  color: var(--text-1);
+  background: var(--bg-2);
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--text-3);
+  }
+}
+
+/* 全局文本样式 */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-1);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  color: var(--text-2);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--primary-hover);
+  }
+}
+
+/* 表单元素 */
+input,
+textarea,
+select {
+  background: var(--bg-1);
+  color: var(--text-1);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: all var(--transition-fast);
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+
+  &:disabled {
+    background: var(--bg-3);
+    color: var(--text-4);
+    cursor: not-allowed;
+  }
+}
+
+/* 响应式 */
+@include respond-to('md') {
+  body {
+    font-size: 14px;
+  }
+}
+
+@include respond-to('sm') {
+  body {
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+}

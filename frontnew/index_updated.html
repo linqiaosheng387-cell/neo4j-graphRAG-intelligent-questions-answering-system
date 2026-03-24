@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中央苏区史智能问答系统</title>
+    <!-- 外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Markdown 解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C41E3A',    // 苏区红
+                        secondary: '#1E3A8A',  // 深蓝
+                        neutral: '#F9F9F9',    // 浅灰背景
+                        'neutral-dark': '#1F2937' // 深色文本
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['"Noto Serif SC"', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .bg-pattern {
+                background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23c41e3a' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+            }
+            .transition-smooth {
+                transition: all 0.3s ease-in-out;
+            }
+            .preset-tag {
+                @apply px-4 py-2 text-sm rounded-lg border transition-smooth
+                       hover:shadow-md hover:bg-primary/10 cursor-pointer;
+            }
+        }
+    </style>
+    
+    <!-- Markdown 样式 -->
+    <style>
+        .markdown-content h1 {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: #1F2937;
+        }
+        .markdown-content h2 {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 0.8em;
+            margin-bottom: 0.4em;
+            color: #374151;
+        }
+        .markdown-content h3 {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 0.6em;
+            margin-bottom: 0.3em;
+            color: #4B5563;
+        }
+        .markdown-content p {
+            margin-bottom: 0.8em;
+            line-height: 1.6;
+        }
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        .markdown-content li {
+            margin-bottom: 0.3em;
+        }
+        .markdown-content strong {
+            font-weight: 600;
+            color: #111827;
+        }
+        .markdown-content em {
+            font-style: italic;
+        }
+        .markdown-content code {
+            background-color: #F3F4F6;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .markdown-content pre {
+            background-color: #F3F4F6;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #C41E3A;
+            padding-left: 1em;
+            margin-left: 0;
+            margin-bottom: 1em;
+            color: #6B7280;
+        }
+        .markdown-content a {
+            color: #C41E3A;
+            text-decoration: underline;
+        }
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #E5E7EB;
+            padding: 0.5em;
+            text-align: left;
+        }
+        .markdown-content th {
+            background-color: #F9FAFB;
+            font-weight: 600;
+        }
+        .markdown-content li {
+            position: relative;
+            padding-left: 1.2em;
+        }
+
+        .markdown-content li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #9CA3AF;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0;
+        }
+
+        .typing-indicator span {
+            width: 0.4rem;
+            height: 0.4rem;
+            border-radius: 9999px;
+            background-color: #9CA3AF;
+            animation: typing-bounce 1.2s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing-bounce {
+            0%, 80%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            40% {
+                transform: translateY(-0.2rem);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-neutral font-sans">
+    <!-- 顶部导航栏 -->
+    <header class="bg-primary text-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-3 md:mb-0">
+                <i class="fa fa-book text-3xl mr-3"></i>
+                <h1 class="text-2xl md:text-3xl font-bold">中央苏区史智能问答系统</h1>
+            </div>
+            <div class="text-center md:text-right">
+                <p class="text-sm opacity-90"></p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-6 md:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 左侧：问答区域 -->
+            <div class="lg:col-span-7 flex flex-col">
+                <div class="bg-white rounded-xl shadow-lg p-5 md:p-6 flex-grow overflow-hidden">
+                    <h2 class="text-2xl font-bold text-neutral-dark mb-4 flex items-center">
+                        <i class="fa fa-comments-o text-primary mr-2"></i>问答交互
+                    </h2>
+
+                    <!-- 对话历史区域 -->
+                    <div id="chat-history" class="overflow-y-auto mb-5 p-4 bg-neutral rounded-lg border border-gray-100" style="height: 450px;">
+                        <!-- 预设问题区域 -->
+                        <div id="preset-questions-container" class="py-2">
+                            <p class="text-sm text-gray-600 mb-3 flex items-center">
+                                <i class="fa fa-lightbulb-o text-primary mr-1.5"></i>
+                                请选择以下问题或输入自定义问题：
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button class="preset-tag border-primary/20 bg-white text-gray-700 hover:text-primary text-left">
+                                    中央苏区存在的时间跨度
+                                </button>
+                                <button class="preset-tag border-primary/20 bg-white text-gray-700 hover:text-primary text-left">
+                                    中央苏区所辖区域
+                                </button>
+                                <button class="preset-tag border-primary/20 bg-white text-gray-700 hover:text-primary text-left">
+                                    中央苏区建立与发展历程
+                                </button>
+                                <button class="preset-tag border-primary/20 bg-white text-gray-700 hover:text-primary text-left">
+                                    中央苏区主要领导人物
+                                </button>
+                                <button class="preset-tag border-primary/20 bg-white text-gray-700 hover:text-primary text-left">
+                                    中央苏区时期重要历史事件
+                                </button>
+                                <button class="preset-tag border-primary/20 bg-white text-gray-700 hover:text-primary text-left">
+                                    中央苏区的历史意义
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 搜索模式选择 -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <label class="text-sm font-medium text-gray-700">搜索模式：</label>
+                            <div class="flex gap-2">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="search-mode" value="global" checked class="mr-2 text-primary">
+                                    <span class="text-sm">全局搜索</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="search-mode" value="local" class="mr-2 text-primary">
+                                    <span class="text-sm">本地搜索</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 问题输入区域 -->
+                    <div class="relative">
+                        <textarea
+                            id="question-input"
+                            placeholder="全局搜索适合宏观问题；本地搜索适合具体问题，生成对应知识图谱。"
+                            class="w-full p-3.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary transition-smooth resize-none shadow-sm text-sm"
+                            rows="3"
+                        ></textarea>
+                        <button
+                            id="submit-question"
+                            class="absolute right-3 bottom-3 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg shadow transition-smooth flex items-center text-sm"
+                        >
+                            <span>提问</span>
+                            <i class="fa fa-paper-plane-o ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：知识图谱可视化 -->
+            <div class="lg:col-span-5">
+                <div class="bg-white rounded-xl shadow-lg p-5 md:p-6 h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-neutral-dark flex items-center">
+                            <i class="fa fa-sitemap text-primary mr-2"></i>中央苏区知识图谱
+                        </h2>
+                        <button 
+                            onclick="openNeo4jBrowser()"
+                            class="px-3 py-1.5 bg-white hover:bg-gray-50 text-primary border border-primary rounded-lg shadow-md transition-smooth text-sm font-medium flex items-center gap-1.5"
+                        >
+                            <i class="fa fa-database"></i>
+                            <span>查看完整版知识图谱</span>
+                        </button>
+                    </div>
+
+                    <!-- 图谱控制区 -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex gap-2">
+                            <button id="zoom-in" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-smooth text-sm">
+                                <i class="fa fa-search-plus"></i>
+                            </button>
+                            <button id="zoom-out" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-smooth text-sm">
+                                <i class="fa fa-search-minus"></i>
+                            </button>
+                            <button id="reset-graph" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-smooth text-sm">
+                                <i class="fa fa-refresh"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 图谱可视化区域 -->
+                    <div id="graph-container" class="border border-gray-100 rounded-lg overflow-hidden bg-neutral/30 relative" style="height: 400px;">
+                        <!-- 右上角信息按钮 -->
+                        <button id="entity-legend-btn" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-gray-400 hover:bg-gray-500 text-white flex items-center justify-center text-lg transition-colors" title="查看实体类型说明">
+                            <i class="fa fa-info"></i>
+                        </button>
+                        
+                        <div id="graph-loading" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10" style="display: none;">
+                            <div class="text-center">
+                                <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-2"></div>
+                                <p class="text-gray-600 text-sm">加载知识图谱...</p>
+                            </div>
+                        </div>
+                        <svg id="graph-svg" class="w-full h-full"></svg>
+                    </div>
+
+                    <!-- 实体描述显示区域 -->
+                    <div id="entity-description" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200" style="display: none; max-height: 180px; overflow-y: auto;">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 id="entity-title" class="font-bold text-primary text-sm"></h3>
+                            <button onclick="closeEntityDescription()" class="text-gray-400 hover:text-gray-600 text-lg leading-none">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        <p id="entity-desc-content" class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap"></p>
+                        <p id="entity-type" class="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-300"></p>
+                    </div>
+
+                    <!-- 图谱说明 -->
+                    <div class="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+                        <p><i class="fa fa-info-circle text-primary mr-1.5"></i> 图谱展示中央苏区相关历史实体及关系</p>
+                        <p class="mt-1.5"><i class="fa fa-mouse-pointer text-primary mr-1.5"></i> 点击节点查看详情，可拖拽调整位置</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 实体类型说明弹窗 -->
+    <div id="entity-legend-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style="display: none;">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-gray-800">实体类型说明</h2>
+                <button onclick="closeEntityLegendModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="legend-content" class="space-y-3">
+                <!-- 动态生成的图例项 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // API配置
+        const API_BASE_URL = 'http://localhost:8084';
+        
+        // 全局变量
+        let currentGraphData = null;
+        let simulation = null;
+        let svg = null;
+        let g = null;
+        let zoom = null;
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            initGraph();
+
+            // 绑定提问按钮事件
+            document.getElementById('submit-question').addEventListener('click', submitQuestion);
+
+            // 绑定回车键提交
+            document.getElementById('question-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitQuestion();
+                }
+            });
+
+            // 绑定预设问题点击事件
+            document.querySelectorAll('.preset-tag').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.getElementById('question-input').value = this.textContent.trim();
+                    submitQuestion();
+                });
+            });
+
+            // 绑定图谱控制按钮
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                zoom.scaleBy(svg.transition().duration(300), 1.3);
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                zoom.scaleBy(svg.transition().duration(300), 0.7);
+            });
+
+            document.getElementById('reset-graph').addEventListener('click', () => {
+                svg.transition().duration(300).call(
+                    zoom.transform,
+                    d3.zoomIdentity
+                );
+            });
+        });
+
+        // 提交问题（调用后端API）
+        async function submitQuestion() {
+            const questionInput = document.getElementById('question-input');
+            const question = questionInput.value.trim();
+
+            if (!question) return;
+
+            // 获取搜索模式
+            const searchMode = document.querySelector('input[name="search-mode"]:checked').value;
+
+            // 清除预设问题容器
+            const presetContainer = document.getElementById('preset-questions-container');
+            if (presetContainer) {
+                presetContainer.remove();
+            }
+
+            // 添加问题到聊天历史
+            addToChatHistory('user', question);
+
+            // 清空输入框
+            questionInput.value = '';
+
+            // 显示加载状态
+            addToChatHistory('system', '正在检索相关历史资料...');
+
+            try {
+                console.log('[前端] 发送流式请求:', { question, mode: searchMode });
+                
+                // 调用流式API
+                const response = await fetch(`${API_BASE_URL}/api/query/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        mode: searchMode,
+                        conversation_id: 'web-' + Date.now()
+                    })
+                });
+
+                // 移除加载状态
+                const chatHistory = document.getElementById('chat-history');
+                if (chatHistory.lastChild && chatHistory.lastChild.dataset.role === 'system') {
+                    chatHistory.removeChild(chatHistory.lastChild);
+                }
+
+                if (!response.ok) {
+                    addToChatHistory('system', '检索失败，请稍后重试', true);
+                    return;
+                }
+
+                // 创建一个空的助手消息容器
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'mb-4 last:mb-0 flex';
+                messageDiv.dataset.role = 'assistant';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'p-3 rounded-lg rounded-tl-none bg-gray-50 text-neutral-dark shadow-sm border border-gray-100 text-sm leading-relaxed markdown-content';
+                contentDiv.dataset.typing = 'true';
+                contentDiv.innerHTML = `
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-2 max-w-[85%]">
+                        <div class="mt-1 bg-gray-100 text-primary p-2 rounded-full shadow-sm text-sm flex-shrink-0">
+                            <i class="fa fa-history"></i>
+                        </div>
+                    </div>
+                `;
+                messageDiv.querySelector('.flex.items-start').appendChild(contentDiv);
+                chatHistory.appendChild(messageDiv);
+
+                // 读取流式响应
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullAnswer = '';
+                let sources = null;
+                let graphData = null;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // 保留不完整的行
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.type === 'text') {
+                                if (contentDiv.dataset.typing === 'true') {
+                                    contentDiv.dataset.typing = 'false';
+                                }
+                                fullAnswer += data.content;
+                                // 使用Markdown渲染
+                                let formatted = marked.parse(fullAnswer);
+                                // 高亮数据引用
+                                formatted = formatted.replace(
+                                    /\[Data: Reports \(([^)]+)\)\]/g,
+                                    '<span class="inline-block px-1 text-gray-800 text-xs font-bold">[Data: Reports ($1)]</span>'
+                                );
+                                contentDiv.innerHTML = formatted;
+                                // 自动滚动到底部
+                                chatHistory.scrollTop = chatHistory.scrollHeight;
+                            } else if (data.type === 'done') {
+                                sources = data.sources;
+                                graphData = data.graph_data;
+                                
+                                // 添加社区报告来源
+                                if (sources && sources.length > 0) {
+                                    const sourcesHTML = `
+                                        <div class="mt-3 pt-3 border-t border-gray-200">
+                                            <div class="text-xs text-gray-500 mb-2 flex items-center">
+                                                <i class="fa fa-book mr-1.5"></i>
+                                                <span class="font-semibold">参考社区报告：</span>
+                                            </div>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                ${sources.map(source => `
+                                                    <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs border border-blue-200">
+                                                        📄 ${source.length > 20 ? source.substring(0, 20) + '...' : source}
+                                                    </span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                    contentDiv.innerHTML += sourcesHTML;
+                                }
+                                
+                                // 更新图谱
+                                if (graphData && graphData.nodes && graphData.nodes.length > 0) {
+                                    console.log('[前端] 更新图谱，节点数:', graphData.nodes.length);
+                                    updateGraph(graphData);
+                                }
+                            } else if (data.type === 'error') {
+                                addToChatHistory('system', '生成答案时出错：' + data.content, true);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('API调用错误:', error);
+                
+                // 移除加载状态
+                const chatHistory = document.getElementById('chat-history');
+                if (chatHistory.lastChild && chatHistory.lastChild.dataset.role === 'system') {
+                    chatHistory.removeChild(chatHistory.lastChild);
+                }
+                
+                addToChatHistory('system', '网络连接错误，请检查后端服务是否正常运行 (http://localhost:8084)', true);
+            }
+        }
+
+        // 添加消息到聊天历史
+        function addToChatHistory(role, content, isError = false, sources = null) {
+            const chatHistory = document.getElementById('chat-history');
+
+            // 创建消息元素
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-4 last:mb-0 ${role === 'user' ? 'flex justify-end' : 'flex'}`;
+            messageDiv.dataset.role = role;
+
+            // 格式化内容
+            let formattedContent;
+            
+            if (role === 'assistant') {
+                // AI回答使用Markdown渲染
+                formattedContent = marked.parse(content);
+                
+                // 高亮数据引用 [Data: Reports (...)] - 黑白色，加粗
+                formattedContent = formattedContent.replace(
+                    /\[Data: Reports \(([^)]+)\)\]/g,
+                    '<span class="inline-block px-1 text-gray-800 text-xs font-bold">[Data: Reports ($1)]</span>'
+                );
+            } else {
+                // 用户消息和系统消息简单处理
+                formattedContent = content.replace(/\n/g, '<br>');
+            }
+
+            if (role === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-2 max-w-[85%]">
+                        <div class="mt-1 bg-primary text-white p-2 rounded-full shadow-sm text-sm flex-shrink-0">
+                            <i class="fa fa-user"></i>
+                        </div>
+                        <div class="p-3 rounded-lg rounded-tr-none bg-primary text-white shadow-sm text-sm">
+                            ${formattedContent}
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'assistant') {
+                // 构建社区报告来源HTML
+                let sourcesHTML = '';
+                if (sources && sources.length > 0) {
+                    sourcesHTML = `
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <div class="text-xs text-gray-500 mb-2 flex items-center">
+                                <i class="fa fa-book mr-1.5"></i>
+                                <span class="font-semibold">参考社区报告：</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${sources.map(source => `
+                                    <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs border border-blue-200">
+                                        📄 ${source.length > 20 ? source.substring(0, 20) + '...' : source}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-2 max-w-[85%]">
+                        <div class="mt-1 bg-gray-100 text-primary p-2 rounded-full shadow-sm text-sm flex-shrink-0">
+                            <i class="fa fa-history"></i>
+                        </div>
+                        <div class="p-3 rounded-lg rounded-tl-none bg-gray-50 text-neutral-dark shadow-sm border border-gray-100 text-sm leading-relaxed markdown-content">
+                            ${formattedContent}
+                            ${sourcesHTML}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const bgColor = isError ? 'bg-red-50' : 'bg-blue-50';
+                const textColor = isError ? 'text-red-700' : 'text-blue-700';
+                messageDiv.innerHTML = `
+                    <div class="flex items-start gap-2 max-w-[85%]">
+                        <div class="mt-1 ${bgColor} ${textColor} p-2 rounded-full shadow-sm text-sm flex-shrink-0">
+                            <i class="fa fa-info-circle"></i>
+                        </div>
+                        <div class="p-2 rounded-lg text-xs ${bgColor} ${textColor} border border-current/10">
+                            ${formattedContent}
+                        </div>
+                    </div>
+                `;
+            }
+
+            chatHistory.appendChild(messageDiv);
+            // 滚动到底部
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // 添加图例（不显示在图谱上，只用于弹窗）
+        function addGraphLegend() {
+            // 图例数据
+            window.graphLegendData = [
+                { type: 'ORGANIZATION', color: '#C41E3A', label: '组织', count: '4228' },
+                { type: 'PERSON', color: '#1E90FF', label: '人物', count: '3175' },
+                { type: 'PLACE', color: '#228B22', label: '地理', count: '3187' },
+                { type: 'EVENT', color: '#FF8C00', label: '事件', count: '3014' },
+                { type: 'DOCUMENT', color: '#9370DB', label: '文件', count: '3353' },
+                { type: 'DATE OR TIME PERIOD', color: '#20B2AA', label: '日期时间', count: '1677' },
+                { type: 'POSITION', color: '#FFD700', label: '职位', count: '727' },
+                { type: 'FACTION', color: '#FF6347', label: '派系', count: '546' }
+            ];
+        }
+        
+        // 初始化知识图谱
+        function initGraph() {
+            const container = document.getElementById('graph-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // 创建SVG
+            svg = d3.select('#graph-svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // 添加图例
+            addGraphLegend();
+
+            // 添加缩放功能
+            zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            // 创建主容器
+            g = svg.append('g');
+
+            // 添加箭头标记
+            svg.append('defs').selectAll('marker')
+                .data(['end'])
+                .enter().append('marker')
+                .attr('id', d => d)
+                .attr('viewBox', '0 -5 10 10')
+                .attr('refX', 20)
+                .attr('refY', 0)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,-5L10,0L0,5')
+                .attr('fill', '#999');
+
+            // 创建力导向图
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collide', d3.forceCollide().radius(40));
+
+            console.log('[图谱] 初始化完成');
+        }
+
+        // 更新知识图谱
+        function updateGraph(graphData) {
+            if (!graphData || !graphData.nodes || graphData.nodes.length === 0) {
+                console.log('[图谱] 无数据');
+                return;
+            }
+
+            console.log('[图谱] 更新数据:', graphData);
+            currentGraphData = graphData;
+
+            // 显示加载状态
+            document.getElementById('graph-loading').style.display = 'flex';
+
+            // 清除旧图谱
+            g.selectAll('*').remove();
+
+            // 准备数据
+            const nodes = graphData.nodes.map(d => ({...d}));
+            const links = graphData.edges.map(d => ({
+                source: d.from,
+                target: d.to,
+                label: d.label
+            }));
+
+            // 创建连线
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .enter().append('line')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6)
+                .attr('stroke-width', 2)
+                .attr('marker-end', 'url(#end)');
+
+            // 创建连线标签
+            const linkLabel = g.append('g')
+                .selectAll('text')
+                .data(links)
+                .enter().append('text')
+                .attr('font-size', 10)
+                .attr('fill', '#666')
+                .attr('text-anchor', 'middle')
+                .text(d => d.label.substring(0, 6));
+
+            // 定义实体类型颜色映射
+            const typeColorMap = {
+                'organization': '#C41E3A',      // 红色 - 组织
+                'person': '#1E90FF',            // 蓝色 - 人物
+                'place': '#228B22',             // 绿色 - 地理
+                'event': '#FF8C00',             // 橙色 - 事件
+                'document': '#9370DB',          // 紫色 - 文件
+                'date or time period': '#20B2AA', // 青色 - 日期时间
+                'position': '#FFD700',          // 金色 - 职位
+                'faction': '#FF6347',           // 番茄红 - 派系
+                'unknown': '#808080'            // 灰色 - 未知
+            };
+            
+            // 获取节点颜色的函数
+            const getNodeColor = (type) => {
+                const normalizedType = (type || 'unknown').toLowerCase();
+                return typeColorMap[normalizedType] || typeColorMap['unknown'];
+            };
+            
+            // 创建节点
+            const node = g.append('g')
+                .selectAll('circle')
+                .data(nodes)
+                .enter().append('circle')
+                .attr('r', 15)
+                .attr('fill', d => getNodeColor(d.type))
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 2)
+                .style('cursor', 'pointer')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended))
+                .on('click', function(event, d) {
+                    showEntityDescription(d);
+                })
+                .on('mouseover', function() {
+                    d3.select(this).attr('r', 18);
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('r', 15);
+                });
+
+            // 创建节点标签
+            const nodeLabel = g.append('g')
+                .selectAll('text')
+                .data(nodes)
+                .enter().append('text')
+                .attr('font-size', 11)
+                .attr('font-weight', 'bold')
+                .attr('fill', '#333')
+                .attr('text-anchor', 'middle')
+                .attr('dy', 25)
+                .style('pointer-events', 'none')
+                .text(d => d.label.length > 6 ? d.label.substring(0, 6) + '...' : d.label);
+
+            // 更新力导向图
+            simulation.nodes(nodes);
+            simulation.force('link').links(links);
+
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                linkLabel
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+
+                nodeLabel
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+
+            simulation.alpha(1).restart();
+
+            // 隐藏加载状态
+            setTimeout(() => {
+                document.getElementById('graph-loading').style.display = 'none';
+            }, 500);
+        }
+
+        // 显示实体描述
+        function showEntityDescription(entity) {
+            console.log('[实体] 点击:', entity);
+            
+            const descBox = document.getElementById('entity-description');
+            const title = document.getElementById('entity-title');
+            const content = document.getElementById('entity-desc-content');
+            const type = document.getElementById('entity-type');
+
+            title.textContent = entity.label;
+            type.textContent = `类型: ${entity.type || '未知'}`;
+
+            if (entity.description && entity.description.trim()) {
+                content.textContent = entity.description;
+            } else {
+                content.innerHTML = '<span class="text-gray-400 italic">暂无详细描述</span>';
+            }
+
+            descBox.style.display = 'block';
+        }
+
+        // 打开实体类型说明弹窗
+        function openEntityLegendModal() {
+            const modal = document.getElementById('entity-legend-modal');
+            const legendContent = document.getElementById('legend-content');
+            
+            if (!window.graphLegendData) {
+                return;
+            }
+            
+            // 生成图例项
+            legendContent.innerHTML = window.graphLegendData.map(item => `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="w-6 h-6 rounded-full flex-shrink-0" style="background-color: ${item.color}; border: 2px solid #ddd;"></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-800 text-sm">${item.label}</div>
+                        <div class="text-xs text-gray-500">${item.type} (${item.count})</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 关闭实体类型说明弹窗
+        function closeEntityLegendModal() {
+            document.getElementById('entity-legend-modal').style.display = 'none';
+        }
+        
+        // 点击背景关闭弹窗
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('entity-legend-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeEntityLegendModal();
+                    }
+                });
+            }
+            
+            // 绑定信息按钮
+            const legendBtn = document.getElementById('entity-legend-btn');
+            if (legendBtn) {
+                legendBtn.addEventListener('click', openEntityLegendModal);
+            }
+        });
+        
+        // 关闭实体描述
+        function closeEntityDescription() {
+            document.getElementById('entity-description').style.display = 'none';
+        }
+
+        // 拖拽函数
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // 打开Neo4j Browser
+        function openNeo4jBrowser() {
+            // Neo4j Browser默认地址
+            const neo4jUrl = 'http://localhost:7474/browser/';
+            
+            // 在新标签页打开
+            const newWindow = window.open(neo4jUrl, '_blank');
+            
+            if (newWindow) {
+                newWindow.focus();
+                console.log('[Neo4j] 已打开浏览器:', neo4jUrl);
+            } else {
+                // 如果被浏览器拦截，提示用户
+                alert('请允许弹出窗口，或手动访问：\n' + neo4jUrl);
+            }
+        }
+    </script>
+</body>
+</html>
